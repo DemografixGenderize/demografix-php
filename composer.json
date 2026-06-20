@@ -1,0 +1,36 @@
+{
+    "name": "demografix/demografix",
+    "description": "Official PHP client for the Demografix APIs: genderize.io, agify.io, and nationalize.io.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["genderize", "agify", "nationalize", "demografix", "gender", "age", "nationality", "names"],
+    "homepage": "https://github.com/DemografixGenderize/demografix-php",
+    "support": {
+        "issues": "https://github.com/DemografixGenderize/demografix-php/issues",
+        "source": "https://github.com/DemografixGenderize/demografix-php"
+    },
+    "require": {
+        "php": ">=8.2",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Demografix\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Demografix\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
