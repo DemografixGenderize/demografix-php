@@ -8,10 +8,9 @@ declare(strict_types=1);
  * Run from the package root after installing dependencies:
  *
  *     composer install
- *     php examples/gender_split.php
+ *     DEMOGRAFIX_API_KEY=YOUR_API_KEY php examples/gender_split.php
  *
- * Set DEMOGRAFIX_API_KEY in the environment to send an API key. Without one,
- * requests use the free per-IP tier.
+ * An API key is required. Set DEMOGRAFIX_API_KEY in the environment.
  */
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -19,7 +18,11 @@ require __DIR__ . '/../vendor/autoload.php';
 use Demografix\Client;
 use Demografix\Exceptions\RateLimitError;
 
-$apiKey = getenv('DEMOGRAFIX_API_KEY') ?: null;
+$apiKey = getenv('DEMOGRAFIX_API_KEY') ?: '';
+if ($apiKey === '') {
+    fwrite(STDERR, "Set DEMOGRAFIX_API_KEY in the environment.\n");
+    exit(1);
+}
 $client = new Client($apiKey);
 
 $names = ['peter', 'lois', 'meg', 'chris', 'stewie', 'brian'];

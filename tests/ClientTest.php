@@ -32,7 +32,7 @@ final class ClientTest extends TestCase
         return new Response($status, self::HEADERS, $body);
     }
 
-    private function client(FakeTransport $transport, ?string $apiKey = null): Client
+    private function client(FakeTransport $transport, string $apiKey = 'test-key'): Client
     {
         return new Client($apiKey, 10.0, $transport);
     }
@@ -184,10 +184,11 @@ final class ClientTest extends TestCase
         $this->client($transport)->genderize('peter');
 
         $this->assertStringNotContainsString('country_id', (string) $transport->lastUrl);
-        $this->assertStringNotContainsString('apikey', (string) $transport->lastUrl);
+        // apikey is always present on the wire
+        $this->assertStringContainsString('apikey=test-key', (string) $transport->lastUrl);
     }
 
-    public function testApiKeyIsSentWhenSet(): void
+    public function testApiKeyIsAlwaysSent(): void
     {
         $transport = new FakeTransport();
         $transport->queue($this->ok('{ "count": 1352696, "name": "peter", "gender": "male", "probability": 1.0 }'));
@@ -195,6 +196,42 @@ final class ClientTest extends TestCase
         $this->client($transport, 'secret-key')->genderize('peter');
 
         $this->assertStringContainsString('apikey=secret-key', (string) $transport->lastUrl);
+    }
+
+    // (7) constructing without a valid api_key raises ValidationError, no HTTP call ----
+
+    public function testEmptyApiKeyRaisesValidationErrorWithoutHttpCall(): void
+    {
+        $transport = new FakeTransport();
+
+        try {
+            new Client('', 10.0, $transport);
+            $this->fail('Expected ValidationError for an empty API key.');
+        } catch (ValidationError $e) {
+            $this->assertSame('api_key is required', $e->getMessage());
+            $this->assertSame(0, $transport->callCount);
+        }
+    }
+
+    public function testBlankApiKeyRaisesValidationErrorWithoutHttpCall(): void
+    {
+        $transport = new FakeTransport();
+
+        try {
+            new Client('   ', 10.0, $transport);
+            $this->fail('Expected ValidationError for a blank API key.');
+        } catch (ValidationError $e) {
+            $this->assertSame('api_key is required', $e->getMessage());
+            $this->assertSame(0, $transport->callCount);
+        }
+    }
+
+    public function testOmittedApiKeyIsAClientSideError(): void
+    {
+        $this->expectException(\ArgumentCountError::class);
+
+        // @phpstan-ignore-next-line  the missing argument is the point of the test
+        new Client();
     }
 
     public function testUserAgentHeaderIsSent(): void

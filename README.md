@@ -1,8 +1,8 @@
 # Demografix PHP SDK
 
-PHP client for the three Demografix APIs: [genderize.io](https://genderize.io) (gender),
-[agify.io](https://agify.io) (age), and [nationalize.io](https://nationalize.io) (nationality). One client
-covers all three services and reports the remaining quota carried on every response.
+Run demographic analysis over names — predicted gender, age, and nationality — from one PHP client. The
+package covers [genderize.io](https://genderize.io), [agify.io](https://agify.io), and
+[nationalize.io](https://nationalize.io).
 
 ## Install
 
@@ -19,7 +19,7 @@ Construct a client, run a batch over a list of names, read the predictions, and 
 ```php
 use Demografix\Client;
 
-$client = new Client(); // pass an API key as the first argument when you have one
+$client = new Client('YOUR_API_KEY');
 
 $batch = $client->genderizeBatch(['peter', 'lois', 'meg', 'chris']);
 
@@ -38,13 +38,13 @@ The client reads quota from the response. It is never cached on the client.
 
 ```php
 $client = new Client(
-    apiKey: 'YOUR_API_KEY', // optional; omit for the free per-IP tier
+    apiKey: 'YOUR_API_KEY', // required
     timeout: 10.0,          // optional, seconds; default 10
 );
 ```
 
-The hosts and the User-Agent are hardcoded. They are not options. One API key works across all three services
-and shares one quota.
+The hosts and the User-Agent are hardcoded. They are not options. The API key is required: constructing the
+client with an empty or blank key raises `ValidationError`. One API key works across all three services.
 
 ## genderize
 
@@ -181,9 +181,10 @@ one `quota`.
 
 ## API keys
 
-Create a key in your account dashboard at [genderize.io](https://genderize.io),
-[agify.io](https://agify.io), or [nationalize.io](https://nationalize.io). Some calls require an API key. Full
-reference: <https://genderize.io/documentation/api>.
+An API key is required. Creating one is free and includes 2,500 requests per month. Generate a key in your
+dashboard at [genderize.io](https://genderize.io), [agify.io](https://agify.io), or
+[nationalize.io](https://nationalize.io). One key works across all three services. Full reference:
+<https://genderize.io/documentation/api>.
 
 ## Tests
 

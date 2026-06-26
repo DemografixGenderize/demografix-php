@@ -25,8 +25,8 @@ use Demografix\Models\Quota;
 /**
  * Client for the three Demografix APIs: genderize, agify, and nationalize.
  *
- * One key works across all three services and shares one quota. The hosts and
- * the User-Agent are hardcoded constants, not options.
+ * One key works across all three services. The hosts and the User-Agent are
+ * hardcoded constants, not options.
  */
 final class Client
 {
@@ -41,15 +41,21 @@ final class Client
     private readonly Transport $transport;
 
     /**
-     * @param string|null    $apiKey    optional API key; omit for the free per-IP tier
+     * @param string         $apiKey    required API key; an empty or blank key raises ValidationError
      * @param float          $timeout   request timeout in seconds
      * @param Transport|null $transport internal seam; defaults to cURL. Tests inject a fake.
+     *
+     * @throws ValidationError when the API key is empty or blank
      */
     public function __construct(
-        private readonly ?string $apiKey = null,
+        private readonly string $apiKey,
         private readonly float $timeout = 10.0,
         ?Transport $transport = null,
     ) {
+        if (trim($this->apiKey) === '') {
+            throw new ValidationError('api_key is required');
+        }
+
         $this->transport = $transport ?? new CurlTransport();
     }
 
@@ -237,7 +243,8 @@ final class Client
 
     /**
      * Build the query string. A single name uses `name=v`; a batch uses
-     * repeated `name[]=v`. `country_id` and `apikey` are added only when set.
+     * repeated `name[]=v`. `apikey` is always present; `country_id` is added
+     * only when set.
      *
      * @param list<string> $names
      */
@@ -253,9 +260,7 @@ final class Client
             $parts[] = 'country_id=' . rawurlencode($countryId);
         }
 
-        if ($this->apiKey !== null && $this->apiKey !== '') {
-            $parts[] = 'apikey=' . rawurlencode($this->apiKey);
-        }
+        $parts[] = 'apikey=' . rawurlencode($this->apiKey);
 
         return implode('&', $parts);
     }
