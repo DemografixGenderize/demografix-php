@@ -123,6 +123,32 @@ final class ClientTest extends TestCase
         );
     }
 
+    // (8) a batch of one name still sends name[], never name= -------------
+
+    public function testBatchOfOneNameSendsNameArrayAndParsesOneElementArray(): void
+    {
+        $transport = new FakeTransport();
+        $transport->queue($this->ok(
+            '[ { "count": 1352696, "name": "peter", "gender": "male", "probability": 1.0 } ]',
+        ));
+
+        $batch = $this->client($transport)->genderizeBatch(['peter']);
+
+        $this->assertCount(1, $batch->results);
+        $this->assertSame('peter', $batch->results[0]->name);
+        $this->assertSame('male', $batch->results[0]->gender);
+        $this->assertSame(1.0, $batch->results[0]->probability);
+        $this->assertSame(1352696, $batch->results[0]->count);
+        $this->assertSame(25000, $batch->quota->limit);
+        $this->assertSame(24987, $batch->quota->remaining);
+        $this->assertSame(1314000, $batch->quota->reset);
+
+        $url = (string) $transport->lastUrl;
+        // the call form picks the parameter shape, never the name count
+        $this->assertStringContainsString('name%5B%5D=peter', $url);
+        $this->assertStringNotContainsString('name=', $url);
+    }
+
     // (3) null prediction is a normal success ----------------------------
 
     public function testGenderizeNullPredictionIsNotAnError(): void
