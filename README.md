@@ -1,12 +1,17 @@
 # Demografix PHP SDK
 
-Run demographic analysis over names — predicted gender, age, and nationality — from one PHP client. The
-package covers [genderize.io](https://genderize.io), [agify.io](https://agify.io), and
-[nationalize.io](https://nationalize.io).
+Predict gender, age, and nationality from first names. One PHP client covers all three Demografix
+APIs — [genderize.io](https://genderize.io) (gender), [agify.io](https://agify.io) (age), and
+[nationalize.io](https://nationalize.io) (nationality) — with single-name lookups and batches of up
+to 100 names per request.
+
+[![Packagist](https://img.shields.io/packagist/v/demografix/demografix)](https://packagist.org/packages/demografix/demografix)
+[![CI](https://github.com/DemografixGenderize/demografix-php/actions/workflows/ci.yml/badge.svg)](https://github.com/DemografixGenderize/demografix-php/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## Install
 
-```bash
+```sh
 composer require demografix/demografix
 ```
 
@@ -34,32 +39,20 @@ echo $batch->quota->remaining; // 24987
 
 The client reads quota from the response. It is never cached on the client.
 
-## Construction
-
-```php
-$client = new Client(
-    apiKey: 'YOUR_API_KEY', // required
-    timeout: 10.0,          // optional, seconds; default 10
-);
-```
-
-The hosts and the User-Agent are hardcoded. They are not options. The API key is required: constructing the
-client with an empty or blank key raises `ValidationError`. One API key works across all three services.
-
 ## genderize
 
 Single name returns a result with the prediction fields and a quota.
 
 ```php
 $result = $client->genderize('peter');
-$result->gender;          // "male", "female", or null
-$result->probability;     // 1.0
-$result->count;           // 1352696
+$result->gender;           // "male", "female", or null
+$result->probability;      // 1.0
+$result->count;            // 1352696
 $result->quota->remaining; // 24987
 ```
 
-Batch (up to 10 names) returns results in input order plus one quota. Aggregate the predictions into a
-distribution rather than labeling any one name.
+Batch returns results in input order plus one quota. Aggregate the predictions into a distribution
+rather than labeling any one name.
 
 ```php
 $batch = $client->genderizeBatch(['peter', 'lois', 'meg']);
@@ -67,6 +60,8 @@ $batch = $client->genderizeBatch(['peter', 'lois', 'meg']);
 $female = array_filter($batch->results, fn ($p) => $p->gender === 'female');
 $femaleShare = count($female) / count($batch->results); // share of the list predicted female
 ```
+
+`gender` is `null` when no match is found. That is a successful response, not an error.
 
 ## agify
 
@@ -108,10 +103,26 @@ foreach ($batch->results as $prediction) {
 // $mix is the top-country breakdown of the list
 ```
 
+## Batch limit
+
+Each batch accepts at most 100 names. A batch of more than 100 raises `ValidationError` before any
+HTTP call. Chunk a longer list and aggregate across the chunks.
+
+```php
+$split = [];
+foreach (array_chunk($roster, 100) as $chunk) {
+    $batch = $client->genderizeBatch($chunk);
+    foreach ($batch->results as $prediction) {
+        $key = $prediction->gender ?? 'unknown';
+        $split[$key] = ($split[$key] ?? 0) + 1;
+    }
+}
+```
+
 ## country_id
 
 `genderize` and `agify` accept an optional ISO 3166-1 alpha-2 `country_id` to scope the prediction.
-`nationalize` does not take one. The API echoes the value back uppercase.
+`nationalize` does not take one. The API echoes the value back uppercase on every prediction.
 
 ```php
 $result = $client->genderize('kim', 'US');
@@ -119,6 +130,16 @@ $result->countryId; // "US"
 
 $batch = $client->agifyBatch(['kim', 'andrea'], 'US');
 ```
+
+Scoping changes the prediction: `andrea` reads female with probability 0.99 in the United States and
+male with probability 0.79 in Italy.
+
+```php
+$client->genderize('andrea', 'US')->gender; // "female"
+$client->genderize('andrea', 'IT')->gender; // "male"
+```
+
+When the request sends no `country_id`, the field is `null`.
 
 ## Quota
 
@@ -138,19 +159,17 @@ $batch->quota->reset;
 
 ## Errors
 
-Every error extends `Demografix\Exceptions\DemografixException`, which carries `status`, the passthrough
-`message`, and a nullable `quota`.
+Every error extends `Demografix\Exceptions\DemografixException`, which carries `status`, the
+passthrough `message`, and a nullable `quota`.
 
 | Exception | Status | Meaning |
 |---|---|---|
 | `AuthError` | 401 | API key missing or invalid |
 | `SubscriptionError` | 402 | subscription expired or inactive |
-| `ValidationError` | 422 | invalid parameter; also raised client-side when a batch exceeds 10 names |
+| `ValidationError` | 422 | invalid parameter; also raised client-side when a batch exceeds 100 names |
 | `RateLimitError` | 429 | quota exhausted; `quota` is always populated |
 | `TransportError` | — | network failure, timeout, or non-JSON body |
 | `DemografixException` | other non-2xx | base type |
-
-A batch of more than 10 names raises `ValidationError` before any HTTP call.
 
 `RateLimitError` reports when the window resets. Read `quota->reset` to back off.
 
@@ -176,24 +195,22 @@ try {
 | `nationalize(string $name)` | `NationalizeResult` | no |
 | `nationalizeBatch(array $names)` | `Batch` of `NationalizePrediction` | no |
 
-Each single result exposes the prediction fields directly and a `quota`. Each `Batch` exposes `results` and
-one `quota`.
+Each single result exposes the prediction fields directly and a `quota`. Each `Batch` exposes
+`results` and one `quota`. The constructor is
+`new Client(apiKey: 'YOUR_API_KEY', timeout: 10.0)`; `apiKey` is required and an empty or blank key
+raises `ValidationError`. The hosts and the User-Agent are hardcoded constants, not options.
 
 ## API keys
 
-An API key is required. Creating one is free and includes 2,500 requests per month. Generate a key in your
-dashboard at [genderize.io](https://genderize.io), [agify.io](https://agify.io), or
-[nationalize.io](https://nationalize.io). One key works across all three services. Full reference:
-<https://genderize.io/documentation/api>.
+An API key is required. Creating one is free and includes 2,500 names per month.
 
-## Tests
+Quota counts **names, not requests**. A single-name call costs 1. A batch of 100 names costs 100. The
+free tier therefore covers 2,500 names in a month however they are split across calls.
 
-```bash
-composer install
-composer test
-```
-
-Tests inject a fake `Transport`, so they run without network access.
+Generate a key in your dashboard at [genderize.io](https://genderize.io),
+[agify.io](https://agify.io), or [nationalize.io](https://nationalize.io). One key works across all
+three services. Full reference:
+[genderize.io/documentation/api](https://genderize.io/documentation/api).
 
 ## License
 

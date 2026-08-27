@@ -30,9 +30,9 @@ use Demografix\Models\Quota;
  */
 final class Client
 {
-    public const VERSION = '0.1.0';
-    private const USER_AGENT = 'demografix-php/0.1.0';
-    private const MAX_BATCH = 10;
+    public const VERSION = '0.2.0';
+    private const USER_AGENT = 'demografix-php/0.2.0';
+    private const MAX_BATCH = 100;
 
     private const HOST_GENDERIZE = 'https://api.genderize.io/';
     private const HOST_AGIFY = 'https://api.agify.io/';
@@ -85,14 +85,14 @@ final class Client
     }
 
     /**
-     * Predict the gender of up to 10 names in one request.
+     * Predict the gender of up to 100 names in one request.
      *
-     * @param list<string> $names     up to 10 names; more raises ValidationError before any HTTP call
+     * @param list<string> $names     up to 100 names; more raises ValidationError before any HTTP call
      * @param string|null  $countryId optional ISO 3166-1 alpha-2 code to scope the predictions
      *
      * @return Batch<GenderizePrediction> results in input order, plus one quota
      *
-     * @throws ValidationError   client-side when more than 10 names are given, or on a 422 response
+     * @throws ValidationError   client-side when more than 100 names are given, or on a 422 response
      * @throws AuthError         on a 401 response (missing or invalid API key)
      * @throws SubscriptionError on a 402 response (expired or inactive subscription)
      * @throws RateLimitError    on a 429 response (quota exhausted)
@@ -137,14 +137,14 @@ final class Client
     }
 
     /**
-     * Predict the age of up to 10 names in one request.
+     * Predict the age of up to 100 names in one request.
      *
-     * @param list<string> $names     up to 10 names; more raises ValidationError before any HTTP call
+     * @param list<string> $names     up to 100 names; more raises ValidationError before any HTTP call
      * @param string|null  $countryId optional ISO 3166-1 alpha-2 code to scope the predictions
      *
      * @return Batch<AgifyPrediction> results in input order, plus one quota
      *
-     * @throws ValidationError   client-side when more than 10 names are given, or on a 422 response
+     * @throws ValidationError   client-side when more than 100 names are given, or on a 422 response
      * @throws AuthError         on a 401 response (missing or invalid API key)
      * @throws SubscriptionError on a 402 response (expired or inactive subscription)
      * @throws RateLimitError    on a 429 response (quota exhausted)
@@ -187,13 +187,13 @@ final class Client
     }
 
     /**
-     * Predict the nationality of up to 10 names in one request.
+     * Predict the nationality of up to 100 names in one request.
      *
-     * @param list<string> $names up to 10 names; more raises ValidationError before any HTTP call
+     * @param list<string> $names up to 100 names; more raises ValidationError before any HTTP call
      *
      * @return Batch<NationalizePrediction> results in input order, plus one quota
      *
-     * @throws ValidationError   client-side when more than 10 names are given, or on a 422 response
+     * @throws ValidationError   client-side when more than 100 names are given, or on a 422 response
      * @throws AuthError         on a 401 response (missing or invalid API key)
      * @throws SubscriptionError on a 402 response (expired or inactive subscription)
      * @throws RateLimitError    on a 429 response (quota exhausted)

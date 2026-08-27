@@ -6,7 +6,7 @@ namespace Demografix\Exceptions;
 
 /**
  * Raised on a 422 response, and client-side before any HTTP call when a batch
- * exceeds the 10-name maximum.
+ * exceeds the 100-name maximum.
  */
 class ValidationError extends DemografixException
 {

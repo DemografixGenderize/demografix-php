@@ -267,19 +267,19 @@ final class ClientTest extends TestCase
 
         $this->client($transport)->genderize('peter');
 
-        $this->assertSame('demografix-php/0.1.0', $transport->lastHeaders['User-Agent'] ?? null);
+        $this->assertSame('demografix-php/0.2.0', $transport->lastHeaders['User-Agent'] ?? null);
     }
 
-    // (5) batch of 11 raises ValidationError with no HTTP call ------------
+    // (5) batch of 101 raises ValidationError with no HTTP call -----------
 
     public function testBatchOverTenRaisesValidationErrorWithoutHttpCall(): void
     {
         $transport = new FakeTransport();
-        $names = array_map(static fn (int $i): string => "name{$i}", range(1, 11));
+        $names = array_map(static fn (int $i): string => "name{$i}", range(1, 101));
 
         try {
             $this->client($transport)->genderizeBatch($names);
-            $this->fail('Expected ValidationError for a batch of 11 names.');
+            $this->fail('Expected ValidationError for a batch of 101 names.');
         } catch (ValidationError $e) {
             $this->assertSame(0, $transport->callCount);
             $this->assertNull($e->status);
@@ -287,11 +287,11 @@ final class ClientTest extends TestCase
         }
     }
 
-    public function testBatchOfTenIsAllowed(): void
+    public function testBatchOfMaxIsAllowed(): void
     {
         $transport = new FakeTransport();
         $transport->queue($this->ok('[]'));
-        $names = array_map(static fn (int $i): string => "name{$i}", range(1, 10));
+        $names = array_map(static fn (int $i): string => "name{$i}", range(1, 100));
 
         $batch = $this->client($transport)->genderizeBatch($names);
 
