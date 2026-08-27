@@ -1,6 +1,6 @@
 {
     "name": "demografix/demografix",
-    "description": "Predict gender, age, and nationality from first names. Official PHP client for the genderize.io, agify.io, and nationalize.io APIs, with batches of up to 100 names per request.",
+    "description": "Predict gender, age, and nationality from names. Official PHP client for the genderize.io, agify.io, and nationalize.io APIs, with batches of up to 100 names per request.",
     "type": "library",
     "license": "MIT",
     "keywords": [

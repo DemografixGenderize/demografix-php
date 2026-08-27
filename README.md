@@ -1,6 +1,6 @@
 # Demografix PHP SDK
 
-Predict gender, age, and nationality from first names. One PHP client covers all three Demografix
+Predict gender, age, and nationality from names. One PHP client covers all three Demografix
 APIs — [genderize.io](https://genderize.io) (gender), [agify.io](https://agify.io) (age), and
 [nationalize.io](https://nationalize.io) (nationality) — with single-name lookups and batches of up
 to 100 names per request.
@@ -41,7 +41,7 @@ The client reads quota from the response. It is never cached on the client.
 
 ## genderize
 
-Single name returns a result with the prediction fields and a quota.
+Predict gender from names. A single name returns a result with the prediction fields and a quota.
 
 ```php
 $result = $client->genderize('peter');
@@ -65,6 +65,8 @@ $femaleShare = count($female) / count($batch->results); // share of the list pre
 
 ## agify
 
+Predict age from names.
+
 ```php
 $result = $client->agify('michael');
 $result->age;   // 57 or null
@@ -81,6 +83,8 @@ $mean = $ages === [] ? null : array_sum($ages) / count($ages); // mean predicted
 ```
 
 ## nationalize
+
+Predict nationality from names.
 
 ```php
 $result = $client->nationalize('nguyen');
