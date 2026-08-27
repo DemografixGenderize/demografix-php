@@ -30,8 +30,8 @@ use Demografix\Models\Quota;
  */
 final class Client
 {
-    public const VERSION = '0.2.0';
-    private const USER_AGENT = 'demografix-php/0.2.0';
+    public const VERSION = '0.2.1';
+    private const USER_AGENT = 'demografix-php/0.2.1';
     private const MAX_BATCH = 100;
 
     private const HOST_GENDERIZE = 'https://api.genderize.io/';

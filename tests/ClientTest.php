@@ -267,7 +267,7 @@ final class ClientTest extends TestCase
 
         $this->client($transport)->genderize('peter');
 
-        $this->assertSame('demografix-php/0.2.0', $transport->lastHeaders['User-Agent'] ?? null);
+        $this->assertSame('demografix-php/0.2.1', $transport->lastHeaders['User-Agent'] ?? null);
     }
 
     // (5) batch of 101 raises ValidationError with no HTTP call -----------
